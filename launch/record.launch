@@ -1,0 +1,15 @@
+<launch>
+    <node name="path_recorder" pkg="path_recorder" type="path_recorder" output="screen">
+    
+        <!-- save path -->
+        <param name="file_path" value="$(find path_recorder)/path/01.txt" />
+
+        <!-- distance of each point in path file -->
+        <param name="path_precision" value="0.2" />
+
+        <!-- the frame of path in tf tree -->
+        <param name="global_frame" value="map" />
+        <param name="robot_frame" value="base_link" />
+        
+    </node>
+</launch>
