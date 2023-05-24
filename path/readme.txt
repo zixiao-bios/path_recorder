@@ -1,1 +1,1 @@
-folder to save your path file. You can change save path in launch file.
+Folder to save your path file. You can change save path in launch file.
