@@ -1,0 +1,1 @@
+Folder to save your point list file. You can change save path in launch file.

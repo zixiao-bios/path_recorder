@@ -1,0 +1,12 @@
+<launch>
+    <node name="path_recorder" pkg="path_recorder" type="points_recorder" output="screen">
+    
+        <!-- save path -->
+        <param name="file_path" value="$(find path_recorder)/points/01.txt" />
+
+        <!-- the frame of path in tf tree -->
+        <param name="global_frame" value="map" />
+        <param name="robot_frame" value="base_link" />
+        
+    </node>
+</launch>

@@ -135,6 +135,7 @@ ${catkin_INCLUDE_DIRS}
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(path_recorder src/path_recorder.cpp)
+add_executable(points_recorder src/points_recorder.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -148,6 +149,9 @@ add_executable(path_recorder src/path_recorder.cpp)
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(path_recorder
+  ${catkin_LIBRARIES}
+)
+target_link_libraries(points_recorder
   ${catkin_LIBRARIES}
 )
 
