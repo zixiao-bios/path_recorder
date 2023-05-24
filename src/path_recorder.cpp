@@ -101,7 +101,7 @@ int main(int argc, char **argv) {
   while (nh.ok()) {
     geometry_msgs::TransformStamped transform_stamped;
     try {
-      transform_stamped = tf_buffer.lookupTransform("map", "body", ros::Time(0));
+      transform_stamped = tf_buffer.lookupTransform(global_frame, robot_frame, ros::Time(0));
       bool added = path_recorder.add_pose(transform_stamped);
       if (added) {
         ROS_INFO("Pose added.");
