@@ -4,6 +4,10 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
+#include <signal.h>
+#include <boost/bind.hpp>
+
+bool ok = true;
 
 class PathRecorder {
 public:
@@ -32,7 +36,7 @@ public:
   }
 
   // 添加路径点的函数
-  bool add_pose(const geometry_msgs::TransformStamped &pose) {
+  bool add_pose(const geometry_msgs::TransformStamped &pose, bool force_add = false) {
     if (first_pose_) {
       write_pose_to_file(pose);
       last_pose_ = pose;
@@ -43,7 +47,7 @@ public:
     double distance = std::sqrt(std::pow(pose.transform.translation.x - last_pose_.transform.translation.x, 2) +
                                 std::pow(pose.transform.translation.y - last_pose_.transform.translation.y, 2));
 
-    if (distance > path_precision_) {
+    if (force_add or distance > path_precision_) {
       write_pose_to_file(pose);
       last_pose_ = pose;
       return true;
@@ -76,9 +80,14 @@ private:
   std::ofstream output_file_;
 };
 
+void sig_handler(int sig) {
+  if (sig == SIGINT) {
+    ok = false;
+  }
+}
 
 int main(int argc, char **argv) {
-  ros::init(argc, argv, "path_recorder_node");
+  ros::init(argc, argv, "path_recorder_node", ros::init_options::NoSigintHandler);
   ros::NodeHandle nh("~");
 
   // 获取参数
@@ -90,16 +99,20 @@ int main(int argc, char **argv) {
   nh.param<std::string>("robot_frame", robot_frame, "base_link");
 
   // 创建PathRecorder对象
-  PathRecorder path_recorder(file_path, path_precision);
+  static PathRecorder path_recorder(file_path, path_precision);
 
   // 创建tf监听器
-  tf2_ros::Buffer tf_buffer;
+  static tf2_ros::Buffer tf_buffer;
   tf2_ros::TransformListener tf_listener(tf_buffer);
+
+  // 绑定信号处理函数
+  signal(SIGINT, &sig_handler);
 
   // 主循环
   ros::Rate rate(10.0);
-  while (nh.ok()) {
-    geometry_msgs::TransformStamped transform_stamped;
+  geometry_msgs::TransformStamped transform_stamped;
+
+  while (ok) {
     try {
       transform_stamped = tf_buffer.lookupTransform(global_frame, robot_frame, ros::Time(0));
       bool added = path_recorder.add_pose(transform_stamped);
@@ -112,7 +125,17 @@ int main(int argc, char **argv) {
       continue;
     }
 
+    ros::spinOnce();
     rate.sleep();
+  }
+
+  // add last pose
+  try {
+      path_recorder.add_pose(transform_stamped, true);
+      ROS_INFO("Last pose added.");
+  } catch (tf2::TransformException &ex) {
+    ROS_ERROR("Last pose add failed!");
+    ROS_WARN("%s", ex.what());
   }
 
   return 0;
